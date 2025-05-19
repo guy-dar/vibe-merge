@@ -1,0 +1,173 @@
+- name: selector
+  prompt: |
+    Based on the code blocks below, select the most appropriate merge strategy:
+
+    Categories and their options:
+    1. For empty original code:
+       - "empty" - When adapting new code to an empty location
+    2. For one-line/short code:
+       - "apply" - When transforming or applying patterns
+    3. For multi-line code:
+       - "standard" - General purpose code merging
+       - "repetitive" - For consistent pattern changes
+       - "combine" - For complementary features to merge
+
+    Return only the option name, nothing else.
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    🔁 Original Version
+    ```
+    {{currentCode}}``  
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    📋 Clipboard Version
+    ```
+    {{clipboardCode}}``
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    📑 Code Context (surrounding code that helps understand scope and dependencies)
+    ```
+    {{contextCode}}``
+
+- name: repetitive
+  prompt: |
+    You're merging code where the second version shows repetitive changes that should be applied consistently throughout the first code block.
+    Return a code block that applies the pattern of changes consistently.
+
+    Guidelines:
+    - Identify the pattern of changes in the second code block
+    - Apply this pattern systematically to all relevant parts of the original code
+    - Maintain consistent style and formatting
+    - Be thorough - don't miss any instances where the pattern should be applied
+    - Enclose your response in a code block
+    - PRESERVE indentation exactly as in the original code
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    🔁 Original Version
+    ```
+    {{currentCode}}``  
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    📋 Pattern Example
+    ```
+    {{clipboardCode}}``
+
+- name: apply
+  prompt: |
+    You're applying a function or transformation (second code block) to elements in the first code block.
+    Return a code block that shows the result of applying this transformation.
+
+    Guidelines:
+    - Treat the second code block as a function or pattern to apply to the first
+    - Apply the transformation consistently to appropriate elements
+    - Maintain the overall structure and organization of the original code
+    - Enclose your response in a code block
+    - PRESERVE indentation exactly as in the original code
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    🔁 Target Code
+    ```
+    {{currentCode}}``  
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    📋 Transformation to Apply
+    ```
+    {{clipboardCode}}``
+
+- name: standard
+  prompt: |
+    Return a code block that merges the code blocks.
+    How to merge:
+    - Retain the core functionality of the original code
+    - Adopt stylistic elements from the second code block!
+    - Consider the surrounding context when making merge decisions
+
+    Guidelines: 
+    - REASON before you decide on the right solution. 
+    - Do not add any comments or explanations of your process.
+    - Enclose your response in a code block (```
+    ...).
+    - You MUST PRESERVE the original version's indentation!
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    🔁 Original Version
+    ```
+    {{currentCode}}``  
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    📋 Clipboard Version
+    ```
+    {{clipboardCode}}``
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    📑 Code Context (code before and after the selection to provide context)
+    ```
+    {{contextCode}}``
+
+- name: refactor
+  prompt: |
+    You're merging code where the second version is a refactored variant of the first.
+    Return a code block that takes the structure and improvements from the refactored version while preserving any unique functionality from the original.
+
+    Guidelines:
+    - Prefer the naming conventions and style of the refactored version
+    - Keep any business logic or special cases from the original that might be missing in the refactor
+    - Enclose your response in a code block
+    - PRESERVE indentation exactly as in the original code
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    🔁 Original Version
+    ```
+    {{currentCode}}``  
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    📋 Refactored Version
+    ```
+    {{clipboardCode}}``
+
+- name: combine
+  prompt: |
+    You're merging two code blocks that contain complementary features to be combined.
+    Return a code block that intelligently merges both code blocks into a cohesive whole.
+
+    Guidelines:
+    - Combine functionality from both blocks without duplication
+    - Resolve any conflicts in variable names or function signatures
+    - Maintain consistent style matching the original code
+    - Enclose your response in a code block
+    - PRESERVE indentation exactly as in the original code
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    🔁 First Feature
+    ```
+    {{currentCode}}``  
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    📋 Second Feature
+    ```
+    {{clipboardCode}}``
+
+- name: empty
+  prompt: |
+    You're adapting new code to fit into an empty location based inside a context code.
+    The code must be adapted to the SYNTAX and STYLE of the context code at the insertion point specified.
+    
+    - Enclose your response in a code block
+    - Return ONLY the new code to add, nothing from the context!
+    - DO not leave the clipboard code as is, it must be adapted to the context code.
+    
+    Final tips:
+    - In some cases, you might see the clipboard code in the context code not at the insertion point. Ignore that and adapt the clipboard code to the context code at the insertion point specified.
+    - REASON before you decide on the right solution. Also, make sure to go over the guidelines above before making a decision.
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    📋 Code from the clipboard
+    ```
+    {{clipboardCode}}
+    ``
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    📑 Code Context
+    ```
+    {{contextCode}}
+    ``

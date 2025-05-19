@@ -1,0 +1,45 @@
+{
+  "name": "vibe-merge",
+  "displayName": "Vibe Merge",
+  "description": "Merge clipboard and code using LLMs with inline diffs and 1-click accept/discard.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "activationEvents": [
+    "onCommand:vibemerge.mergeClipboard"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vibemerge.mergeClipboard",
+        "title": "Vibe Merge from Clipboard"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "vibemerge.mergeClipboard",
+        "key": "ctrl+shift+v",
+        "when": "editorTextFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "@types/vscode": "^1.75.0",
+    "typescript": "^4.9.5",
+    "vscode": "^1.1.37"
+  },
+  "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "dotenv": "^16.5.0",
+    "js-yaml": "^4.1.0",
+    "openai": "^4.93.0"
+  }
+}

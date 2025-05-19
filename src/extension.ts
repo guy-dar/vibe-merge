@@ -22,7 +22,7 @@ class VibeMergeProvider implements vscode.TextDocumentContentProvider {
 
 async function runLM(prompt: string): Promise<string | null> {
   let modelName = "";
-  if (lmProvider === "ollama") {
+  if (lmProvider === "OLLAMA") {
     modelName = process.env.OLLAMA_MODEL || 'null';
     const ollamaBaseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
     const response = await fetch(`${ollamaBaseUrl}/api/chat`, {
@@ -46,7 +46,7 @@ async function runLM(prompt: string): Promise<string | null> {
     let baseURL = "";
     let apiKey = "";
     
-    if (lmProvider == "huggingface") {
+    if (lmProvider == "HUGGINGFACE") {
       modelName = process.env.HUGGINGFACE_MODEL || 'null';
       baseURL = `https://router.huggingface.co/hf-inference/models/${modelName}/v1`;
       apiKey = process.env.HUGGINGFACE_API_KEY || 'null';

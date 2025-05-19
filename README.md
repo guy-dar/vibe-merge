@@ -6,7 +6,22 @@ Vibe Merge is a developer tool that reimagines the way you copy and paste code i
 
 Vibe Merge intelligently transforms and merges code snippets to fit seamlessly into your current context. Whether you're transplanting between languages, applying a function, or resolving semantic overlaps, Vibe Merge does the heavy lifting.
 
----
+## 🛠️ Installation 
+Let's get the code up and running. First make sure you have `npm`. Then, inside the folder, run:
+``
+npm install
+``
+Setup a `.env` file with your preffered LM providers. For example:
+
+``
+LM_PROVIDER=GROQ
+GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_API_KEY=gsk_......
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+``
+When you specify an `LM_PROVIDER`, the extension will use it as a prefix to look for in the `.env` file. This way you can have multiple providers and toggle between them using the `LM_PROVIDER` key.
+
+Finally, you can run the extension in debug mode by hitting `F5`. 
 
 ## ✨ Features
 
@@ -40,10 +55,5 @@ Traditional copy-paste tools are limited — they don’t understand code. Vibe 
 
 ## 📫 Get Involved
 
-Have ideas, feedback, or want to contribute? Open an issue or submit a pull request — we’d love your input!
-
-
-## License
-
-See `LICENSE` for details.
+Have ideas, feedback, or want to contribute? Open an issue or submit a pull request - we'd love your input!
 

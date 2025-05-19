@@ -45,14 +45,15 @@ async function runLM(prompt: string): Promise<string | null> {
   } else {
     let baseURL = "";
     let apiKey = "";
-    if (lmProvider == "openrouter") {
-      modelName = process.env.OPENROUTER_MODEL || 'null';
-      baseURL = "https://openrouter.ai/api/v1";
-      apiKey = process.env.OPENROUTER_API_KEY || 'null';
-    } else if (lmProvider == "huggingface") {
+    
+    if (lmProvider == "huggingface") {
       modelName = process.env.HUGGINGFACE_MODEL || 'null';
       baseURL = `https://router.huggingface.co/hf-inference/models/${modelName}/v1`;
       apiKey = process.env.HUGGINGFACE_API_KEY || 'null';
+    } else {
+      modelName = process.env[`${lmProvider}_MODEL`] || 'null';
+      baseURL = process.env[`${lmProvider}_BASE_URL`] || 'null';
+      apiKey = process.env[`${lmProvider}_API_KEY`] || 'null';
     }
     const openai = new OpenAI({
       baseURL: baseURL,

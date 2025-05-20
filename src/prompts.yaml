@@ -76,7 +76,7 @@
 
 - name: standard
   prompt: |
-    Return a code block that merges the code blocks.
+    Return a code block that merges the code blocks (do not include the context around the original code).
     How to merge:
     - Retain the core functionality of the original code
     - Adopt stylistic elements from the second code block!

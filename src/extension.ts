@@ -222,30 +222,59 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.workspace.registerTextDocumentContentProvider(scheme, provider)
     );
   
-    const leftUri = vscode.Uri.parse(`${scheme}:/original`);
-    const rightUri = vscode.Uri.parse(`${scheme}:/modified`);
-  
-    await vscode.commands.executeCommand('vscode.diff', leftUri, rightUri, 'Vibe Merge Preview');
-  
-    const result = await vscode.window.showInformationMessage(
-      'Apply Vibe Merge?',
-      'Accept',
-      'Discard'
-    );
-  
-    if (result === 'Accept') {
-      // Switch back to original document
-      const doc = await vscode.workspace.openTextDocument(originalUri);
-      const visibleEditor = await vscode.window.showTextDocument(doc);
+    // Create decorations for showing the preview
+    const oldCodeDecoration = vscode.window.createTextEditorDecorationType({
+      backgroundColor: new vscode.ThemeColor('diffEditor.removedTextBackground'),
+      isWholeLine: true
+    });
 
-      // Apply mergedCode at original selection
-      await visibleEditor.edit(editBuilder => {
-        editBuilder.replace(selection, mergedCode);
-      });
-      vscode.window.showInformationMessage('Merged code applied!');
+    const newCodeDecoration = vscode.window.createTextEditorDecorationType({
+      backgroundColor: new vscode.ThemeColor('diffEditor.insertedTextBackground'),
+      isWholeLine: true
+    });
 
-    } else {
-      vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    try {
+      // Show both blocks - red for old, green for new
+      const previewPos = new vscode.Position(selection.end.line + 1, 0);
+      const previewRange = new vscode.Range(
+        previewPos,
+        previewPos.translate(mergedCode.split('\n').length)
+      );
+
+      // Insert the preview temporarily
+      await editor.edit(editBuilder => {
+        editBuilder.insert(previewPos, mergedCode + '\n');
+      }, { undoStopBefore: false, undoStopAfter: false });
+
+      // Apply the decorations
+      editor.setDecorations(oldCodeDecoration, [selection]);
+      editor.setDecorations(newCodeDecoration, [previewRange]);
+
+      // Show modal dialog
+      const result = await vscode.window.showQuickPick(
+        ['Accept', 'Discard'],
+        {
+          placeHolder: 'Apply Vibe Merge?',
+          ignoreFocusOut: true
+        }
+      );
+
+      // Cleanup the preview regardless of choice
+      await editor.edit(editBuilder => {
+        editBuilder.delete(previewRange);
+      }, { undoStopBefore: false, undoStopAfter: false });
+
+      if (result === 'Accept') {
+        // Apply the merged code in a single edit
+        await editor.edit(editBuilder => {
+          editBuilder.replace(selection, mergedCode);
+        });
+        vscode.window.showInformationMessage('Merged code applied!');
+      }
+    } finally {
+      // Clean up decorations
+      oldCodeDecoration.dispose();
+      newCodeDecoration.dispose();
     }
   });
   

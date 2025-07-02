@@ -38,25 +38,29 @@ export async function showDiffPreview(
   );
 
   try {
+    // Construct expanded preview for green block
+    const expandedStart = new vscode.Position(startLine, 0);
+    const expandedEnd = new vscode.Position(endLine, endChar);
+    const before = document.getText(new vscode.Range(expandedStart, selection.start));
+    const after = document.getText(new vscode.Range(selection.end, expandedEnd));
+    const expandedPreview = before + mergedCode + after;
+    const previewLines = expandedPreview.split('\n');
     const previewPos = new vscode.Position(expandedSelection.end.line + 1, 0);
-    const mergedLines = mergedCode.split('\n');
     const previewRange = new vscode.Range(
       previewPos,
       new vscode.Position(
-        previewPos.line + mergedLines.length - 1,
-        mergedLines[mergedLines.length - 1].length
+        previewPos.line + previewLines.length - 1,
+        previewLines[previewLines.length - 1].length
       )
     );
-
-    // Calculate the full preview range for deletion (including the extra newline)
     const previewDeleteRange = new vscode.Range(
       previewPos,
-      new vscode.Position(previewPos.line + mergedLines.length, 0)
+      new vscode.Position(previewPos.line + previewLines.length, 0)
     );
 
     // Insert the preview temporarily
     await editor.edit(editBuilder => {
-      editBuilder.insert(previewPos, mergedCode + '\n');
+      editBuilder.insert(previewPos, expandedPreview + '\n');
     }, { undoStopBefore: false, undoStopAfter: false });
 
     // Apply the decorations
@@ -80,7 +84,7 @@ export async function showDiffPreview(
     if (result === 'Accept') {
       // Apply the merged code in a single edit
       await editor.edit(editBuilder => {
-        editBuilder.replace(expandedSelection, mergedCode);
+        editBuilder.replace(selection, mergedCode);
       });
       vscode.window.showInformationMessage('Merged code applied!');
     }

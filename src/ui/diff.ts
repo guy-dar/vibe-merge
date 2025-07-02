@@ -38,25 +38,50 @@ export async function showDiffPreview(
   );
 
   try {
-    // Construct expanded preview for green block
-    const expandedStart = new vscode.Position(startLine, 0);
-    const expandedEnd = new vscode.Position(endLine, endChar);
-    const before = document.getText(new vscode.Range(expandedStart, selection.start));
-    const after = document.getText(new vscode.Range(selection.end, expandedEnd));
-    const expandedPreview = before + mergedCode + after;
-    const previewLines = expandedPreview.split('\n');
-    const previewPos = new vscode.Position(expandedSelection.end.line + 1, 0);
-    const previewRange = new vscode.Range(
-      previewPos,
-      new vscode.Position(
-        previewPos.line + previewLines.length - 1,
-        previewLines[previewLines.length - 1].length
-      )
-    );
-    const previewDeleteRange = new vscode.Range(
-      previewPos,
-      new vscode.Position(previewPos.line + previewLines.length, 0)
-    );
+    // If no text is selected, do not show a red block and do not expand selection
+    const isEmptySelection = selection.isEmpty;
+    let expandedPreview: string;
+    let previewLines: string[];
+    let previewPos: vscode.Position;
+    let previewRange: vscode.Range;
+    let previewDeleteRange: vscode.Range;
+    
+    if (isEmptySelection) {
+      expandedPreview = mergedCode;
+      previewLines = expandedPreview.split('\n');
+      previewPos = new vscode.Position(selection.start.line, selection.start.character);
+      previewRange = new vscode.Range(
+        previewPos,
+        new vscode.Position(
+          previewPos.line + previewLines.length - 1,
+          previewLines[previewLines.length - 1].length
+        )
+      );
+      previewDeleteRange = new vscode.Range(
+        previewPos,
+        new vscode.Position(previewPos.line + previewLines.length, 0)
+      );
+    } else {
+      // Construct expanded preview for green block
+      const expandedStart = new vscode.Position(startLine, 0);
+      const expandedEnd = new vscode.Position(endLine, endChar);
+      const before = document.getText(new vscode.Range(expandedStart, selection.start));
+      const after = document.getText(new vscode.Range(selection.end, expandedEnd));
+      expandedPreview = before + mergedCode + after;
+      previewLines = expandedPreview.split('\n');
+      previewPos = new vscode.Position(expandedSelection.end.line + 1, 0);
+      previewRange = new vscode.Range(
+        previewPos,
+        new vscode.Position(
+          previewPos.line + previewLines.length - 1,
+          previewLines[previewLines.length - 1].length
+        )
+      );
+      previewDeleteRange = new vscode.Range(
+        previewPos,
+        new vscode.Position(previewPos.line + previewLines.length, 0)
+      );
+    }
 
     // Insert the preview temporarily
     await editor.edit(editBuilder => {
@@ -64,7 +89,11 @@ export async function showDiffPreview(
     }, { undoStopBefore: false, undoStopAfter: false });
 
     // Apply the decorations
-    editor.setDecorations(oldCodeDecoration, [expandedSelection]);
+    if (!isEmptySelection) {
+      editor.setDecorations(oldCodeDecoration, [expandedSelection]);
+    } else {
+      editor.setDecorations(oldCodeDecoration, []);
+    }
     editor.setDecorations(newCodeDecoration, [previewRange]);
 
     // Show modal dialog
@@ -84,7 +113,11 @@ export async function showDiffPreview(
     if (result === 'Accept') {
       // Apply the merged code in a single edit
       await editor.edit(editBuilder => {
-        editBuilder.replace(selection, mergedCode);
+        if (isEmptySelection) {
+          editBuilder.insert(selection.start, mergedCode);
+        } else {
+          editBuilder.replace(selection, mergedCode);
+        }
       });
       vscode.window.showInformationMessage('Merged code applied!');
     }

@@ -2,69 +2,11 @@ import * as vscode from 'vscode';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { handleCodeMerge } from './lm';
+import { showDiffPreview } from './ui/diff';
 
 const envPath = path.resolve(__dirname, '..', '.env');
 dotenv.config({path: envPath});
 
-
-async function showDiffPreview(
-  editor: vscode.TextEditor,
-  selection: vscode.Selection,
-  mergedCode: string
-): Promise<void> {
-  const oldCodeDecoration = vscode.window.createTextEditorDecorationType({
-    backgroundColor: new vscode.ThemeColor('diffEditor.removedTextBackground'),
-    isWholeLine: true
-  });
-
-  const newCodeDecoration = vscode.window.createTextEditorDecorationType({
-    backgroundColor: new vscode.ThemeColor('diffEditor.insertedTextBackground'),
-    isWholeLine: true
-  });
-
-  try {
-    const previewPos = new vscode.Position(selection.end.line + 1, 0);
-    const previewRange = new vscode.Range(
-      previewPos,
-      previewPos.translate(mergedCode.split('\n').length)
-    );
-
-    // Insert the preview temporarily
-    await editor.edit(editBuilder => {
-      editBuilder.insert(previewPos, mergedCode + '\n');
-    }, { undoStopBefore: false, undoStopAfter: false });
-
-    // Apply the decorations
-    editor.setDecorations(oldCodeDecoration, [selection]);
-    editor.setDecorations(newCodeDecoration, [previewRange]);
-
-    // Show modal dialog
-    const result = await vscode.window.showQuickPick(
-      ['Accept', 'Discard'],
-      {
-        placeHolder: 'Apply Vibe Merge?',
-        ignoreFocusOut: true
-      }
-    );
-
-    // Cleanup the preview regardless of choice
-    await editor.edit(editBuilder => {
-      editBuilder.delete(previewRange);
-    }, { undoStopBefore: false, undoStopAfter: false });
-
-    if (result === 'Accept') {
-      // Apply the merged code in a single edit
-      await editor.edit(editBuilder => {
-        editBuilder.replace(selection, mergedCode);
-      });
-      vscode.window.showInformationMessage('Merged code applied!');
-    }
-  } finally {
-    // Clean up decorations
-    oldCodeDecoration.dispose();
-    newCodeDecoration.dispose();
-  }
-}
 
 function getContextCode(
   document: vscode.TextDocument,

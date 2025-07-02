@@ -74,15 +74,15 @@ async function runLM(prompt: string): Promise<string | null> {
   }
 }
 
-interface MergePrompt {
+interface Prompt {
   name: string;
   prompt: string;
 }
 
-function getMergePrompts(): MergePrompt[] {
+function getMergePrompts(): Prompt[] {
   const promptsPath = path.resolve(__dirname, '..', 'src', 'prompts.yaml');
   const fileContents = fs.readFileSync(promptsPath, 'utf8');
-  return yaml.load(fileContents) as MergePrompt[];
+  return yaml.load(fileContents) as Prompt[];
 }
 
 // New utility functions for code categorization
@@ -112,7 +112,9 @@ function formatContextWithMarker(contextCode: string, existingCode: string, sele
   }
 }
 
-export async function handleCodeMerge(currentCode: string, clipboardCode: string, contextCode?: string, selectionOffset?: number): Promise<string | null> {
+export async function handleCodeMerge(currentCode: string, clipboardCode: string, 
+                                      contextCode?: string, selectionOffset?: number,
+                                      verbose: boolean = false, useSelectorPrompt: boolean = false): Promise<string | null> {
   const category = categorizeCode(currentCode, clipboardCode);
   const mergePrompts = getMergePrompts();
   
@@ -123,27 +125,30 @@ export async function handleCodeMerge(currentCode: string, clipboardCode: string
   switch (category) {
     case 'empty':
       selectedPrompt = mergePrompts.find(p => p.name === "empty")!;
-      vscode.window.showInformationMessage('Using empty code adaptation strategy');
       break;
       
     case 'oneline':
-      selectedPrompt = mergePrompts.find(p => p.name === "apply")!;
-      vscode.window.showInformationMessage('Using apply transformation strategy');
+      selectedPrompt = mergePrompts.find(p => p.name === "standard")!;
       break;
       
     case 'multiline':
-      const selectorPrompt = mergePrompts.find(p => p.name === "selector")!;
-      const selectorPromptText = selectorPrompt.prompt
-        .replace(/{{currentCode}}/g, currentCode)
-        .replace(/{{clipboardCode}}/g, clipboardCode)
-        .replace(/{{contextCode}}/g, formattedContext);
-        
-      const mergeType = await runLM(selectorPromptText);
-      selectedPrompt = mergePrompts.find(p => mergeType?.includes(p.name)) 
-        || mergePrompts.find(p => p.name === "standard")!;
-      
-      vscode.window.showInformationMessage(`Using ${selectedPrompt.name} merge strategy`);
+      if(useSelectorPrompt) {
+          const selectorPrompt = mergePrompts.find(p => p.name === "selector")!;
+          const selectorPromptText = selectorPrompt.prompt
+            .replace(/{{currentCode}}/g, currentCode)
+            .replace(/{{clipboardCode}}/g, clipboardCode)
+            .replace(/{{contextCode}}/g, formattedContext);
+            
+          const mergeType = await runLM(selectorPromptText);
+          selectedPrompt = mergePrompts.find(p => mergeType?.includes(p.name)) 
+            || mergePrompts.find(p => p.name === "standard")!;  
+      } else {
+          selectedPrompt = mergePrompts.find(p => p.name === "standard")!;
+      }    
       break;
+  }
+  if(selectedPrompt && verbose){
+      vscode.window.showInformationMessage(`Using ${selectedPrompt.name} merge strategy`);
   }
 
   // Format the prompt by replacing placeholders with actual values

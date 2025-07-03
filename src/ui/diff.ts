@@ -69,7 +69,13 @@ export async function showDiffPreview(
       const after = document.getText(new vscode.Range(selection.end, expandedEnd));
       expandedPreview = before + mergedCode + after;
       previewLines = expandedPreview.split('\n');
-      previewPos = new vscode.Position(expandedSelection.end.line + 1, 0);
+      
+      // Edge case: if expandedSelection ends on the last line, insert preview in-place
+      if (expandedSelection.end.line === document.lineCount - 1) {
+        previewPos = expandedStart;
+      } else {
+        previewPos = new vscode.Position(expandedSelection.end.line + 1, 0);
+      }
       previewRange = new vscode.Range(
         previewPos,
         new vscode.Position(
